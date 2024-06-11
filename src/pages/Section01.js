@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
-// import ReactDOM from 'react-dom';
+import React, { useState, useEffect, useRef } from 'react';
 import { TiChevronLeftOutline, TiChevronRightOutline } from 'react-icons/ti';
 import cities from '../data/cities';
 import cityicon from '../assets/img/citypage_icon.png';
 
-const MAX_VISIBILITY = 3;
+const MAX_VISIBILITY = 2;
 
 const Card = ({ title, description, image, alt }) => (
     <div className='city-card'>
@@ -18,28 +17,57 @@ const Card = ({ title, description, image, alt }) => (
 );
 
 const Carousel = ({ children }) => {
-    const [active, setActive] = useState(2);
+    const [active, setActive] = useState(MAX_VISIBILITY);
+    const [transitionEnabled, setTransitionEnabled] = useState(true);
     const count = React.Children.count(children);
+    const childrenArray = React.Children.toArray(children);
+
+    const updateIndex = (newIndex) => {
+        if (newIndex < 0) {
+            setActive(count - 1 + MAX_VISIBILITY);
+        } else if (newIndex >= count + MAX_VISIBILITY) {
+            setActive(0 + MAX_VISIBILITY);
+        } else {
+            setActive(newIndex);
+        }
+    };
+
+    useEffect(() => {
+        if (active === count + MAX_VISIBILITY) {
+            setTimeout(() => {
+                setTransitionEnabled(false);
+                setActive(MAX_VISIBILITY);
+            }, 300);
+        } else if (active === MAX_VISIBILITY - 1) {
+            setTimeout(() => {
+                setTransitionEnabled(false);
+                setActive(count + MAX_VISIBILITY - 1);
+            }, 300);
+        } else {
+            setTransitionEnabled(true);
+        }
+    }, [active, count]);
 
     return (
         <div className='carousel'>
-            {active > 0 && <button className='nav up' onClick={() => setActive(i => i - 1)}><TiChevronLeftOutline /></button>}
             <div className='cards-container'>
-                {React.Children.map(children, (child, i) => (
-                    <div className='card-container' style={{
+                <button className='nav up' onClick={() => updateIndex(active - 1)}><TiChevronLeftOutline /></button>
+                {[...childrenArray.slice(-MAX_VISIBILITY), ...childrenArray, ...childrenArray.slice(0, MAX_VISIBILITY)].map((child, i) => (
+                    <div className='card-container' key={i} style={{
                         '--active': i === active ? 1 : 0,
-                        '--offset': (active - i) / 3,
-                        '--direction': Math.sign(active - i),
-                        '--abs-offset': Math.abs(active - i) / 3,
+                        '--offset': (i - active) / 3,
+                        '--direction': Math.sign(i - active),
+                        '--abs-offset': Math.abs(i - active) / 3,
                         'pointer-events': active === i ? 'auto' : 'none',
-                        'opacity': Math.abs(active - i) >= MAX_VISIBILITY ? '0' : '1',
-                        'display': Math.abs(active - i) > MAX_VISIBILITY ? 'none' : 'block',
+                        'opacity': Math.abs(i - active) >= MAX_VISIBILITY ? '0' : '1',
+                        'display': Math.abs(i - active) > MAX_VISIBILITY ? 'none' : 'block',
+                        'transition': transitionEnabled ? 'all 0.3s ease-out' : 'none',
                     }}>
                         {child}
                     </div>
                 ))}
+                <button className='nav down' onClick={() => updateIndex(active + 1)}><TiChevronRightOutline /></button>
             </div>
-            {active < count - 1 && <button className='nav down' onClick={() => setActive(i => i + 1)}><TiChevronRightOutline /></button>}
         </div>
     );
 };
