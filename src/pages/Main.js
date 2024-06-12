@@ -19,11 +19,12 @@ const Main = () => {
                     Find the best travel destinations and restaurants in Korea with ease!<br />
                     Discover our recommended spots to make your trip special.
                 </p>
-            </div>
-            <button className="start-button" onClick={handleStartClick}>
+                <button className="start-button" onClick={handleStartClick}>
                 <p>start</p>
                 <span className='arrow_icon'></span>
-            </button>
+                </button>
+            </div>
+            
 
             <div className="box01">
                 <img src={mainImage02} alt="travel" className="mainimg02" />

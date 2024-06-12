@@ -16,11 +16,12 @@ const Card = ({ title, description, image, alt }) => (
     </div>
 );
 
-const Carousel = ({ children }) => {
+const Carousel = ({ children, activeIndex }) => {
     const [active, setActive] = useState(MAX_VISIBILITY);
     const [transitionEnabled, setTransitionEnabled] = useState(true);
     const count = React.Children.count(children);
     const childrenArray = React.Children.toArray(children);
+    const carouselRef = useRef(null);
 
     const updateIndex = (newIndex) => {
         if (newIndex < 0) {
@@ -48,12 +49,39 @@ const Carousel = ({ children }) => {
         }
     }, [active, count]);
 
+    useEffect(() => {
+        const handleWheel = (event) => {
+            if (event.deltaY < 0) {
+                updateIndex(active - 1);
+            } else {
+                updateIndex(active + 1);
+            }
+        };
+
+        const carousel = carouselRef.current;
+        if (carousel) {
+            carousel.addEventListener('wheel', handleWheel);
+        }
+
+        return () => {
+            if (carousel) {
+                carousel.removeEventListener('wheel', handleWheel);
+            }
+        };
+    }, [active]);
+
+    useEffect(() => {
+        if (activeIndex) {
+            activeIndex(active - MAX_VISIBILITY);
+        }
+    }, [active, activeIndex]);
+
     return (
-        <div className='carousel'>
+        <div className='carousel' ref={carouselRef}>
             <div className='cards-container'>
                 <button className='nav up' onClick={() => updateIndex(active - 1)}><TiChevronLeftOutline /></button>
                 {[...childrenArray.slice(-MAX_VISIBILITY), ...childrenArray, ...childrenArray.slice(0, MAX_VISIBILITY)].map((child, i) => (
-                    <div className='card-container' key={i} style={{
+                    <div className={`card-container ${i === active ? 'center-card' : ''}`} key={i} style={{
                         '--active': i === active ? 1 : 0,
                         '--offset': (i - active) / 3,
                         '--direction': Math.sign(i - active),
@@ -72,29 +100,50 @@ const Carousel = ({ children }) => {
     );
 };
 
-const Section01 = () => (
-    <>
-        <div className="city-section">
-            <img src={cityicon} alt='시티아이콘'></img>
-            <h1>City</h1>
-        </div>
-        <div className='cont'>
-            <div className='section_img'></div>
-            <div className="city-list">
-                <Carousel>
-                    {cities.map((city, index) => (
-                        <Card
+const Section01 = () => {
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [images, setImages] = useState(cities.map(city => ({ ...city, visible: true })));
+
+    useEffect(() => {
+        setImages(images.map((img, index) => ({
+            ...img,
+            visible: index === currentIndex
+        })));
+    }, [currentIndex]);
+
+    return (
+        <>
+            <div className="city-section">
+                <img src={cityicon} alt='시티아이콘'></img>
+                <h1>City</h1>
+            </div>
+            <div className='cont'>
+                <div className='section_img'>
+                    {images.map((img, index) => (
+                        <img
                             key={index}
-                            title={city.name}
-                            description={city.description}
-                            image={city.image}
-                            alt={city.alt}
+                            src={img.image}
+                            alt={img.alt}
+                            className={img.visible ? '' : 'hidden'}
                         />
                     ))}
-                </Carousel>
+                </div>
+                <div className="city-list">
+                    <Carousel activeIndex={setCurrentIndex}>
+                        {cities.map((city, index) => (
+                            <Card
+                                key={index}
+                                title={city.name}
+                                description={city.description}
+                                image={city.image}
+                                alt={city.alt}
+                            />
+                        ))}
+                    </Carousel>
+                </div>
             </div>
-        </div>
-    </>
-);
+        </>
+    );
+};
 
 export default Section01;

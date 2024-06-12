@@ -59,44 +59,43 @@
         font-family: var(--mainfont-nanum);
     }
 
-}
-
-.start-button {
-    width: 830px;
-    height: 90px;
-    background-color: #A57E67;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    font-size: 1.875em;
-    cursor: pointer;
-    border-radius: 8px 0 0 8px;
-    position: absolute;
-    bottom: 120px;
-    right: 10px;
-    justify-content: right;
-    align-items: center;
-    display: flex;
-
-
-    p {
-        margin-right: 20px;
-        z-index: 2;
-        text-align: right;
-    }
-
-    .arrow_icon {
-        width: 48px;
-        height: 48px;
-        display: block;
-        margin-right: 40px;
-        background-image: url(../../img/arrow01.png);
-
-    }
-
-
-
-    &:hover {
-        background-color: #8a6348;
+    .start-button {
+        width: 830px;
+        height: 90px;
+        background-color: #A57E67;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        font-size: 1.875em;
+        cursor: pointer;
+        border-radius: 8px 0 0 8px;
+        position: absolute;
+        right: 10px;
+        justify-content: right;
+        align-items: center;
+        display: flex;
+        bottom: -220px;
+    
+    
+        p {
+            margin-right: 20px;
+            z-index: 2;
+            text-align: right;
+        }
+    
+        .arrow_icon {
+            width: 48px;
+            height: 48px;
+            display: block;
+            margin-right: 40px;
+            background-image: url(../../img/arrow01.png);
+    
+        }
+    
+    
+    
+        &:hover {
+            background-color: #8a6348;
+        }
     }
 }
