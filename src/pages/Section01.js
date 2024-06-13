@@ -1,17 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { TiChevronLeftOutline, TiChevronRightOutline } from 'react-icons/ti';
 import cities from '../data/cities';
 import cityicon from '../assets/img/citypage_icon.png';
 
 const MAX_VISIBILITY = 2;
 
-const Card = ({ title, description, image, alt }) => (
+const Card = ({ title, description, image, alt, onDetailClick }) => (
     <div className='city-card'>
         <img src={image} alt={alt} className="city-image" />
         <div className="city-info">
             <h2>{title}</h2>
             <p>{description}</p>
-            <button className="detail_button">상세보기</button>
+            <button className="detail_button" onClick={onDetailClick}>상세보기</button>
         </div>
     </div>
 );
@@ -100,7 +101,28 @@ const Carousel = ({ children, activeIndex }) => {
     );
 };
 
+const cityTranslations = {
+    'Seoul': '서울',
+    'Busan': '부산',
+    'Daegu': '대구',
+    'Incheon': '인천',
+    'Gwangju': '광주',
+    'Daejeon': '대전',
+    'Ulsan': '울산',
+    'Sejong': '세종',
+    'Gyeonggi': '경기도',
+    'Gangwon': '강원도',
+    'Chungcheongbuk': '충청북도',
+    'Chungcheongnam': '충청남도',
+    'Jeollabuk': '전라북도',
+    'Jeollanam': '전라남도',
+    'Gyeongsangbuk': '경상북도',
+    'Gyeongsangnam': '경상남도',
+    'Jeju': '제주도'
+};
+
 const Section01 = () => {
+    const navigate = useNavigate();
     const [currentIndex, setCurrentIndex] = useState(0);
     const [images, setImages] = useState(cities.map(city => ({ ...city, visible: true })));
 
@@ -110,6 +132,11 @@ const Section01 = () => {
             visible: index === currentIndex
         })));
     }, [currentIndex]);
+
+    const handleDetailClick = (cityName) => {
+        const translatedCityName = cityTranslations[cityName];
+        navigate(`/RegionDetail/${translatedCityName}`);
+    };
 
     return (
         <>
@@ -137,6 +164,7 @@ const Section01 = () => {
                                 description={city.description}
                                 image={city.image}
                                 alt={city.alt}
+                                onDetailClick={() => handleDetailClick(city.name)}
                             />
                         ))}
                     </Carousel>
