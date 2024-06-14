@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link, useParams } from "react-router-dom";
 import axios from "axios";
 import { TiChevronLeftOutline, TiChevronRightOutline } from 'react-icons/ti';
+import { FaCalendarAlt } from 'react-icons/fa';  // 달력 아이콘 임포트
 import regionList from "../assets/json/RegionList.json";
 import Loading from "../components/Loading";  // 로딩 컴포넌트 임포트
 
@@ -24,6 +25,9 @@ const RegionDetail = () => {
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(false);  // 로딩 상태 추가
     const [currentIndex, setCurrentIndex] = useState(0);
+    const [cardsToShow, setCardsToShow] = useState(5); // 한 번에 표시할 카드 개수 상태 추가
+    const [isMobile, setIsMobile] = useState(false); // 모바일 뷰 상태 추가
+    const [isSmallScreen, setIsSmallScreen] = useState(false); // 작은 화면 상태 추가
     const sliderRef = useRef(null);
 
     const SCROLL_SENSITIVITY = 50; // 스크롤 강도 조절 값
@@ -51,6 +55,39 @@ const RegionDetail = () => {
             }
         }
     }, [selectedRegion, selectedSubRegion, date]);
+
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth < 390) {
+                setIsSmallScreen(true);
+                setCardsToShow(1);
+                setIsMobile(true);
+            } else if (window.innerWidth < 600) {
+                setIsSmallScreen(false);
+                setCardsToShow(1);
+                setIsMobile(true);
+            } else if (window.innerWidth < 1000) {
+                setIsSmallScreen(false);
+                setCardsToShow(3);
+                setIsMobile(false);
+            } else if (window.innerWidth < 1300) {
+                setIsSmallScreen(false);
+                setCardsToShow(4);
+                setIsMobile(false);
+            } else {
+                setIsSmallScreen(false);
+                setCardsToShow(5);
+                setIsMobile(false);
+            }
+        };
+
+        window.addEventListener('resize', handleResize);
+        handleResize(); // 초기 실행 시 호출
+
+        return () => {
+            window.removeEventListener('resize', handleResize);
+        };
+    }, []);
 
     const fetchData = async (region, subRegion, date) => {
         setIsLoading(true);  // 데이터 요청 전 로딩 시작
@@ -93,7 +130,7 @@ const RegionDetail = () => {
     };
 
     const handleNext = () => {
-        if (currentIndex < data.length - 5) {
+        if (currentIndex < data.length - cardsToShow) {
             setCurrentIndex(currentIndex + 1);
         }
     };
@@ -122,33 +159,66 @@ const RegionDetail = () => {
     return (
         <div className="region-detail">
             <div className="RegionDetail_header">
-                <img src={RegionDetail_icon01} alt="icon1" />
-                <img src={RegionDetail_icon02} alt="icon2" />
+                {!isSmallScreen && (
+                    <>
+                        <img src={RegionDetail_icon01} alt="icon1" />
+                        <img src={RegionDetail_icon02} alt="icon2" />
+                    </>
+                )}
                 <h1>something enjoyably to play</h1>
             </div>
             <div className="controls">
-                <select value={selectedRegion} onChange={handleRegionChange}>
-                    <option value="" disabled>
-                        Select a region
-                    </option>
-                    {Object.keys(regionList).map((regionKey) => (
-                        <option key={regionKey} value={regionKey}>
-                            {regionKey}
-                        </option>
-                    ))}
-                </select>
-                <select value={selectedSubRegion} onChange={handleSubRegionChange} disabled={!selectedRegion}>
-                    <option value="" disabled>
-                        Select a sub-region
-                    </option>
-                    {selectedRegion &&
-                        Object.keys(regionList[selectedRegion].subRegions).map((subRegionKey) => (
-                            <option key={subRegionKey} value={subRegionKey}>
-                                {subRegionKey}
+                {!isMobile ? (
+                    <>
+                        <select value={selectedRegion} onChange={handleRegionChange}>
+                            <option value="" disabled>
+                                Select a region
                             </option>
-                        ))}
-                </select>
-                <input type="date" value={date} onChange={handleDateChange} />
+                            {Object.keys(regionList).map((regionKey) => (
+                                <option key={regionKey} value={regionKey}>
+                                    {regionKey}
+                                </option>
+                            ))}
+                        </select>
+                        <select value={selectedSubRegion} onChange={handleSubRegionChange} disabled={!selectedRegion}>
+                            <option value="" disabled>
+                                Select a sub-region
+                            </option>
+                            {selectedRegion &&
+                                Object.keys(regionList[selectedRegion].subRegions).map((subRegionKey) => (
+                                    <option key={subRegionKey} value={subRegionKey}>
+                                        {subRegionKey}
+                                    </option>
+                                ))}
+                        </select>
+                        <input type="date" value={date} onChange={handleDateChange} />
+                    </>
+                ) : (
+                    <>
+                        <select
+                            className="combined-select"
+                            value={`${selectedRegion}-${selectedSubRegion}`}
+                            onChange={(e) => {
+                                const [region, subRegion] = e.target.value.split("-");
+                                setSelectedRegion(region);
+                                setSelectedSubRegion(subRegion);
+                            }}
+                        >
+                            <option value="" disabled>
+                                Select a region and sub-region
+                            </option>
+                            {Object.keys(regionList).map((regionKey) =>
+                                Object.keys(regionList[regionKey].subRegions).map((subRegionKey) => (
+                                    <option key={`${regionKey}-${subRegionKey}`} value={`${regionKey}-${subRegionKey}`}>
+                                        {regionKey} - {subRegionKey}
+                                    </option>
+                                ))
+                            )}
+                        </select>
+                        <FaCalendarAlt className="date-icon" onClick={() => document.getElementById('date-picker').click()} />
+                        <input id="date-picker" type="date" value={date} onChange={handleDateChange} style={{ display: 'none' }} />
+                    </>
+                )}
             </div>
             {isLoading && (
                 <div className="loading__wrap">
@@ -159,7 +229,7 @@ const RegionDetail = () => {
             {!isLoading && data.length > 0 && (
                 <div className="slider-container">
                     <div className="slider" ref={sliderRef}>
-                        {data.slice(currentIndex, currentIndex + 5).map((item, index) => (
+                        {data.slice(currentIndex, currentIndex + cardsToShow).map((item, index) => (
                             <div key={index} className="card">
                                 <img src={item.image_url} alt={item.title} />
                                 <h2>{item.title}</h2>
@@ -168,11 +238,11 @@ const RegionDetail = () => {
                                     <img src={map_icon} alt="이미지1" />{item.addresses}
                                 </p>
                                 <p>
-                                    <img src={blog_icon} alt="이미지2" /> {item.blog_review}
+                                    <img src={blog_icon} alt="이미지2" /> 블로그 리뷰 {item.blog_review}
                                 </p>
                                 {item.human_review && (
                                     <p>
-                                        <img src={visitor_icon} alt="이미지3" /> {item.human_review}
+                                        <img src={visitor_icon} alt="이미지3" /> 방문자 리뷰 {item.human_review}
                                     </p>
                                 )}
                                 <Link to={`/detail?region=${item.addresses}&link=${item.link}`} className="detail_button">상세보기</Link>
@@ -184,7 +254,7 @@ const RegionDetail = () => {
                             <TiChevronLeftOutline />
                         </button>
                     )}
-                    {currentIndex < data.length - 5 && (
+                    {currentIndex < data.length - cardsToShow && (
                         <button className="next-button" onClick={handleNext}>
                             <TiChevronRightOutline />
                         </button>
