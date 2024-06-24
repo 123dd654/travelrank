@@ -49,7 +49,7 @@ const TopPlaces = () => {
             {Object.entries(topPlaces).map(([regionKorean, subRegions]) => (
                 <div key={regionKorean} className="region-top-places">
                     <h3>{regionKorean}</h3>
-                    {subRegions.map(({ subRegion, places }) => (
+                    {subRegions.map(({ subRegion, places }) => {}
                         <div key={subRegion}>
                             <h4>{subRegion}</h4>
                             <ul>
